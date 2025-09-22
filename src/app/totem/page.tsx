@@ -27,12 +27,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// Hook para dados do dashboard
+// Hook para buscar dados do dashboard em tempo real
 function useDashboardData() {
   const [dashboardData, setDashboardData] = useState({
     restaurant: {
       name: "fcrazybossburgers",
-      address: "Rua das Delícias, 123",
+      address: "Carregando...",
       logo: "🍔",
     },
     categories: [
@@ -42,96 +42,158 @@ function useDashboardData() {
       { id: "desserts", name: "Sobremesas", icon: IceCream2 },
       { id: "promotions", name: "Promoções", icon: Tag },
     ],
-    complementItems: [
-      { id: 101, name: "Bacon Extra", price: 4.5 },
-      { id: 102, name: "Cheddar Cremoso", price: 3.0 },
-      { id: 103, name: "Queijo Suíço", price: 3.5 },
-      { id: 104, name: "Molho Especial", price: 1.0 },
-      { id: 105, name: "Alface Extra", price: 1.5 },
-      { id: 106, name: "Tomate Extra", price: 1.5 },
-    ],
-    removableIngredients: [
-      { id: 201, name: "Cebola" },
-      { id: 202, name: "Tomate" },
-      { id: 203, name: "Alface" },
-      { id: 204, name: "Molho" },
-      { id: 205, name: "Picles" },
-    ],
-    products: [
-      {
-        id: 1,
-        name: "X-Burger Clássico",
-        description:
-          "Hambúrguer artesanal, alface, tomate, cebola e molho especial",
-        price: 18.9,
-        category: "burgers",
-        image: "🍔",
-        bestseller: true,
-        ingredients: [
-          "Hambúrguer",
-          "Alface",
-          "Tomate",
-          "Cebola",
-          "Molho especial",
-        ],
-      },
-      {
-        id: 2,
-        name: "X-Bacon Supremo",
-        description:
-          "Hambúrguer artesanal, bacon crocante, queijo cheddar, alface e tomate",
-        price: 22.9,
-        category: "burgers",
-        image: "🥓",
-        bestseller: true,
-        ingredients: [
-          "Hambúrguer",
-          "Bacon",
-          "Queijo cheddar",
-          "Alface",
-          "Tomate",
-        ],
-      },
-      {
-        id: 3,
-        name: "Coca-Cola Lata",
-        description: "Refrigerante Coca-Cola 350ml gelado",
-        price: 5.0,
-        category: "drinks",
-        image: "🥤",
-        ingredients: [],
-      },
-      {
-        id: 4,
-        name: "Sorvete Artesanal",
-        description: "Sorvete cremoso sabor chocolate ou baunilha",
-        price: 8.5,
-        category: "desserts",
-        image: "🍦",
-        ingredients: [],
-      },
-      {
-        id: 5,
-        name: "Combo X-Burger",
-        description: "X-Burger + Batata + Refrigerante",
-        price: 24.9,
-        category: "promotions",
-        image: "🍟",
-        originalPrice: 30.4,
-        ingredients: ["X-Burger", "Batata frita", "Refrigerante"],
-      },
-    ],
+    complementItems: [],
+    removableIngredients: [],
+    products: [],
   });
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+
+  // Função para buscar dados do GitHub (simulando API do dashboard)
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+
+      // Simula busca de dados de uma API que conecta com seu dashboard
+      // Em produção, isso seria uma chamada real para sua API
+      const mockApiResponse = {
+        restaurant: {
+          name: "fcrazybossburgers",
+          address: "Vila Sanja",
+          logo: "🍔",
+        },
+        complementItems: [
+          { id: 101, name: "Bacon Extra", price: 4.5 },
+          { id: 102, name: "Cheddar Cremoso", price: 3.0 },
+          { id: 103, name: "Queijo Suíço", price: 3.5 },
+          { id: 104, name: "Molho Especial", price: 1.0 },
+          { id: 105, name: "Alface Extra", price: 1.5 },
+          { id: 106, name: "Tomate Extra", price: 1.5 },
+        ],
+        removableIngredients: [
+          { id: 201, name: "Cebola" },
+          { id: 202, name: "Tomate" },
+          { id: 203, name: "Alface" },
+          { id: 204, name: "Molho" },
+          { id: 205, name: "Picles" },
+        ],
+        products: [
+          {
+            id: 1,
+            name: "X-Burger Clássico",
+            description:
+              "Hambúrguer artesanal, alface, tomate, cebola e molho especial",
+            price: 18.9,
+            category: "burgers",
+            image: "🍔",
+            bestseller: true,
+            ingredients: [
+              "Hambúrguer",
+              "Alface",
+              "Tomate",
+              "Cebola",
+              "Molho especial",
+            ],
+          },
+          {
+            id: 2,
+            name: "X-Bacon Supremo",
+            description:
+              "Hambúrguer artesanal, bacon crocante, queijo cheddar, alface e tomate",
+            price: 22.9,
+            category: "burgers",
+            image: "🥓",
+            bestseller: true,
+            ingredients: [
+              "Hambúrguer",
+              "Bacon",
+              "Queijo cheddar",
+              "Alface",
+              "Tomate",
+            ],
+          },
+          {
+            id: 3,
+            name: "Coca-Cola Lata",
+            description: "Refrigerante Coca-Cola 350ml gelado",
+            price: 5.0,
+            category: "drinks",
+            image: "🥤",
+            ingredients: [],
+          },
+          {
+            id: 4,
+            name: "Sorvete Artesanal",
+            description: "Sorvete cremoso sabor chocolate ou baunilha",
+            price: 8.5,
+            category: "desserts",
+            image: "🍦",
+            ingredients: [],
+          },
+          {
+            id: 5,
+            name: "Combo X-Burger",
+            description: "X-Burger + Batata + Refrigerante",
+            price: 24.9,
+            category: "promotions",
+            image: "🍟",
+            originalPrice: 30.4,
+            ingredients: ["X-Burger", "Batata frita", "Refrigerante"],
+          },
+        ],
+      };
+
+      // Simula delay de rede
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setDashboardData((prev) => ({
+        ...prev,
+        ...mockApiResponse,
+      }));
+
+      setLastUpdate(new Date());
+      console.log(
+        "🔄 Dados sincronizados com o dashboard GitHub às",
+        new Date().toLocaleTimeString()
+      );
+    } catch (error) {
+      console.error("❌ Erro ao sincronizar com dashboard:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Busca inicial dos dados
   useEffect(() => {
-    console.log("🔄 Dados sincronizados com o dashboard");
+    fetchDashboardData();
   }, []);
 
-  return dashboardData;
+  // Polling para buscar atualizações a cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Função manual para forçar atualização
+  const refreshData = () => {
+    fetchDashboardData();
+  };
+
+  return {
+    ...dashboardData,
+    isLoading,
+    lastUpdate,
+    refreshData,
+  };
 }
 
 export default function TotemPage() {
-  const dashboardData = useDashboardData();
+  const { isLoading, lastUpdate, refreshData, ...dashboardData } =
+    useDashboardData();
   const [currentScreen, setCurrentScreen] = useState("welcome");
   const [selectedCategory, setSelectedCategory] = useState("bestsellers");
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -243,30 +305,32 @@ export default function TotemPage() {
   // Tela de boas-vindas
   if (currentScreen === "welcome") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center p-4">
-        <div className="text-center max-w-2xl">
-          <div className="text-9xl mb-8">{dashboardData.restaurant.logo}</div>
-          <h1 className="text-7xl font-bold text-white mb-4">
+      <div
+        className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6 cursor-pointer"
+        onClick={() => setCurrentScreen("main")}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            setCurrentScreen("main");
+          }
+        }}
+        aria-label="Toque para começar"
+      >
+        <div className="text-center max-w-xl select-none">
+          <div className="text-8xl mb-6">{dashboardData.restaurant.logo}</div>
+
+          <h1 className="text-5xl font-semibold text-gray-900 mb-2">
             {dashboardData.restaurant.name}
           </h1>
-          <p className="text-3xl text-white/90 mb-8">
+
+          <p className="text-lg text-gray-600 mb-12">
             {dashboardData.restaurant.address}
           </p>
 
-          <Card
-            className="bg-white/95 backdrop-blur p-8 cursor-pointer hover:scale-105 transition-transform duration-200"
-            onClick={() => setCurrentScreen("main")}
-          >
-            <CardContent className="p-8">
-              <div className="text-6xl mb-4">👆</div>
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                Toque para começar
-              </h2>
-              <p className="text-xl text-gray-600">
-                Faça seu pedido de forma rápida e prática
-              </p>
-            </CardContent>
-          </Card>
+          <h2 className="text-3xl font-medium text-gray-700">
+            Toque para começar
+          </h2>
         </div>
       </div>
     );
@@ -285,6 +349,11 @@ export default function TotemPage() {
             <h2 className="text-2xl font-bold text-gray-800">
               {dashboardData.restaurant.name}
             </h2>
+            {isLoading && (
+              <div className="text-sm text-yellow-600 mt-1">
+                🔄 Carregando dados...
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
