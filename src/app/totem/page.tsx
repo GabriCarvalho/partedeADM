@@ -25,7 +25,93 @@ import {
   IceCream2,
   Tag,
   ChevronRight,
+  User,
+  FileText,
+  Landmark,
+  Home,
+  ShoppingBag,
+  AlertCircle,
 } from "lucide-react";
+
+// Utilidade para validação e formatação de CPF
+const CPFUtils = {
+  // Remove caracteres não numéricos
+  clean: (cpf) => cpf.replace(/\D/g, ""),
+
+  // Formata CPF com pontos e traço
+  format: (cpf) => {
+    const cleaned = CPFUtils.clean(cpf);
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 6) return cleaned.replace(/(\d{3})(\d+)/, "$1.$2");
+    if (cleaned.length <= 9)
+      return cleaned.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
+    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
+  },
+
+  // Valida CPF usando algoritmo oficial
+  validate: (cpf) => {
+    const cleaned = CPFUtils.clean(cpf);
+
+    // Verifica se tem 11 dígitos
+    if (cleaned.length !== 11) return false;
+
+    // Verifica se não são todos dígitos iguais
+    if (/^(\d)\1{10}$/.test(cleaned)) return false;
+
+    // Valida os dígitos verificadores
+    let sum = 0;
+    let remainder;
+
+    // Primeiro dígito verificador
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+
+    // Segundo dígito verificador
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+
+    return true;
+  },
+
+  // Verifica se CPF está completo (11 dígitos)
+  isComplete: (cpf) => CPFUtils.clean(cpf).length === 11,
+
+  // Máscara visual para exibição
+  getMask: (cpf) => {
+    const cleaned = CPFUtils.clean(cpf);
+    const mask = "___.___.___-__";
+    let result = "";
+    let maskIndex = 0;
+    let cpfIndex = 0;
+
+    while (maskIndex < mask.length && cpfIndex < cleaned.length) {
+      if (mask[maskIndex] === "_") {
+        result += cleaned[cpfIndex];
+        cpfIndex++;
+      } else {
+        result += mask[maskIndex];
+      }
+      maskIndex++;
+    }
+
+    // Completa o resto da máscara
+    while (maskIndex < mask.length) {
+      result += mask[maskIndex];
+      maskIndex++;
+    }
+
+    return result;
+  },
+};
 
 // Hook para buscar dados do dashboard em tempo real
 function useDashboardData() {
@@ -56,7 +142,6 @@ function useDashboardData() {
       setIsLoading(true);
 
       // Simula busca de dados de uma API que conecta com seu dashboard
-      // Em produção, isso seria uma chamada real para sua API
       const mockApiResponse = {
         restaurant: {
           name: "fcrazybossburgers",
@@ -191,10 +276,254 @@ function useDashboardData() {
   };
 }
 
+// Componente de Teclado Virtual melhorado
+function VirtualKeyboard({
+  onKeyPress,
+  onBackspace,
+  onSpace,
+  onClear,
+  onConfirm,
+  disabled = false,
+}) {
+  const [isUpperCase, setIsUpperCase] = useState(false);
+
+  const firstRow = isUpperCase
+    ? ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"]
+    : ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
+
+  const secondRow = isUpperCase
+    ? ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
+    : ["a", "s", "d", "f", "g", "h", "j", "k", "l"];
+
+  const thirdRow = isUpperCase
+    ? ["Z", "X", "C", "V", "B", "N", "M"]
+    : ["z", "x", "c", "v", "b", "n", "m"];
+
+  const numbersRow = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+  return (
+    <div className="bg-gray-100 p-4 rounded-lg mt-4">
+      {/* Linha de números */}
+      <div className="flex justify-center gap-1 mb-2 flex-wrap">
+        {numbersRow.map((char) => (
+          <Button
+            key={char}
+            variant="outline"
+            className="w-12 h-12 text-lg font-mono"
+            onClick={() => onKeyPress(char)}
+            disabled={disabled}
+          >
+            {char}
+          </Button>
+        ))}
+      </div>
+
+      {/* Primeira linha */}
+      <div className="flex justify-center gap-1 mb-2 flex-wrap">
+        {firstRow.map((char) => (
+          <Button
+            key={char}
+            variant="outline"
+            className="w-12 h-12 text-lg font-mono"
+            onClick={() => onKeyPress(char)}
+            disabled={disabled}
+          >
+            {char}
+          </Button>
+        ))}
+      </div>
+
+      {/* Segunda linha */}
+      <div className="flex justify-center gap-1 mb-2 flex-wrap">
+        {secondRow.map((char) => (
+          <Button
+            key={char}
+            variant="outline"
+            className="w-12 h-12 text-lg font-mono"
+            onClick={() => onKeyPress(char)}
+            disabled={disabled}
+          >
+            {char}
+          </Button>
+        ))}
+      </div>
+
+      {/* Terceira linha */}
+      <div className="flex justify-center gap-1 mb-2 flex-wrap">
+        {thirdRow.map((char) => (
+          <Button
+            key={char}
+            variant="outline"
+            className="w-12 h-12 text-lg font-mono"
+            onClick={() => onKeyPress(char)}
+            disabled={disabled}
+          >
+            {char}
+          </Button>
+        ))}
+      </div>
+
+      {/* Botões especiais */}
+      <div className="flex justify-center gap-2 flex-wrap">
+        <Button
+          variant="outline"
+          className="h-12"
+          onClick={() => setIsUpperCase(!isUpperCase)}
+          disabled={disabled}
+        >
+          {isUpperCase ? "ABC" : "abc"}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-12"
+          onClick={onSpace}
+          disabled={disabled}
+        >
+          Espaço
+        </Button>
+        <Button
+          variant="outline"
+          className="h-12"
+          onClick={onBackspace}
+          disabled={disabled}
+        >
+          ⌫
+        </Button>
+        <Button
+          variant="outline"
+          className="h-12"
+          onClick={onClear}
+          disabled={disabled}
+        >
+          Limpar
+        </Button>
+        <Button
+          className="h-12 bg-green-600"
+          onClick={onConfirm}
+          disabled={disabled}
+        >
+          OK
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Componente de Teclado Numérico para CPF melhorado
+function NumericKeyboard({
+  onKeyPress,
+  onBackspace,
+  onClear,
+  onConfirm,
+  disabled = false,
+  confirmDisabled = false,
+}) {
+  const numbers = [
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    ["7", "8", "9"],
+    ["", "0", ""],
+  ];
+
+  return (
+    <div className="bg-gray-100 p-4 rounded-lg mt-4">
+      <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+        {numbers.flat().map((num, index) =>
+          num ? (
+            <Button
+              key={`num-${index}`}
+              variant="outline"
+              className="h-16 text-xl font-mono"
+              onClick={() => onKeyPress(num)}
+              disabled={disabled}
+            >
+              {num}
+            </Button>
+          ) : (
+            <div key={`empty-${index}`} className="h-16" />
+          )
+        )}
+      </div>
+
+      <div className="flex gap-2 max-w-xs mx-auto mt-4">
+        <Button
+          variant="outline"
+          className="flex-1 h-16 text-lg"
+          onClick={onBackspace}
+          disabled={disabled}
+        >
+          ⌫ Apagar
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-16 text-lg"
+          onClick={onClear}
+          disabled={disabled}
+        >
+          Limpar
+        </Button>
+      </div>
+
+      <Button
+        className="w-full h-16 bg-green-600 text-xl mt-2 max-w-xs mx-auto block"
+        onClick={onConfirm}
+        disabled={disabled || confirmDisabled}
+      >
+        Confirmar
+      </Button>
+    </div>
+  );
+}
+
+// Componente para exibição de CPF com validação visual
+function CPFDisplay({ cpf, showValidation = false }) {
+  const isValid = CPFUtils.validate(cpf);
+  const isComplete = CPFUtils.isComplete(cpf);
+
+  return (
+    <div className="text-center">
+      <div
+        className={`text-2xl font-mono p-4 rounded-lg border-2 transition-colors ${
+          showValidation && cpf
+            ? isValid
+              ? "bg-green-50 border-green-300"
+              : "bg-red-50 border-red-300"
+            : "bg-gray-100 border-gray-200"
+        }`}
+      >
+        {CPFUtils.getMask(cpf)}
+      </div>
+
+      {showValidation && cpf && (
+        <div className="mt-2 flex items-center justify-center gap-2">
+          {isComplete ? (
+            isValid ? (
+              <div className="flex items-center text-green-600">
+                <Check className="h-4 w-4 mr-1" />
+                <span className="text-sm">CPF válido</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-red-600">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <span className="text-sm">CPF inválido</span>
+              </div>
+            )
+          ) : (
+            <div className="text-gray-500 text-sm">
+              Digite os {11 - CPFUtils.clean(cpf).length} dígitos restantes
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TotemPage() {
   const { isLoading, lastUpdate, refreshData, ...dashboardData } =
     useDashboardData();
   const [currentScreen, setCurrentScreen] = useState("welcome");
+  const [orderType, setOrderType] = useState(null); // 'dine-in' ou 'takeaway'
   const [selectedCategory, setSelectedCategory] = useState("bestsellers");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cart, setCart] = useState([]);
@@ -202,6 +531,13 @@ export default function TotemPage() {
   const [removedIngredients, setRemovedIngredients] = useState([]);
   const [customizationStep, setCustomizationStep] = useState("complements");
   const [paymentMethod, setPaymentMethod] = useState(null);
+  const [cardType, setCardType] = useState(null); // 'credit' ou 'debit'
+  const [customerData, setCustomerData] = useState({
+    name: "",
+    cpf: "",
+    wantsReceipt: false,
+  });
+  const [inputStep, setInputStep] = useState("receipt"); // receipt -> cpf -> name -> payment
 
   const getProductsByCategory = (category) => {
     if (category === "bestsellers") {
@@ -288,18 +624,157 @@ export default function TotemPage() {
   };
 
   const proceedToPayment = () => {
-    setCurrentScreen("payment");
+    setCurrentScreen("customer-data");
+    setInputStep("receipt");
+  };
+
+  // Funções melhoradas para manipulação do teclado virtual
+  const handleNameKeyPress = (char) => {
+    // Limita o nome a 50 caracteres
+    if (customerData.name.length < 50) {
+      setCustomerData((prev) => ({
+        ...prev,
+        name: prev.name + char,
+      }));
+    }
+  };
+
+  const handleNameBackspace = () => {
+    setCustomerData((prev) => ({
+      ...prev,
+      name: prev.name.slice(0, -1),
+    }));
+  };
+
+  const handleNameSpace = () => {
+    // Evita espaços no início e espaços duplos
+    if (customerData.name.length > 0 && !customerData.name.endsWith(" ")) {
+      setCustomerData((prev) => ({
+        ...prev,
+        name: prev.name + " ",
+      }));
+    }
+  };
+
+  const handleNameClear = () => {
+    setCustomerData((prev) => ({
+      ...prev,
+      name: "",
+    }));
+  };
+
+  // Funções melhoradas para CPF
+  const handleCpfKeyPress = (digit) => {
+    const currentCleaned = CPFUtils.clean(customerData.cpf);
+    if (currentCleaned.length < 11) {
+      const newCpf = CPFUtils.format(currentCleaned + digit);
+      setCustomerData((prev) => ({
+        ...prev,
+        cpf: newCpf,
+      }));
+    }
+  };
+
+  const handleCpfBackspace = () => {
+    const currentCleaned = CPFUtils.clean(customerData.cpf);
+    if (currentCleaned.length > 0) {
+      const newCleaned = currentCleaned.slice(0, -1);
+      const newFormatted = CPFUtils.format(newCleaned);
+      setCustomerData((prev) => ({
+        ...prev,
+        cpf: newFormatted,
+      }));
+    }
+  };
+
+  const handleCpfClear = () => {
+    setCustomerData((prev) => ({
+      ...prev,
+      cpf: "",
+    }));
+  };
+
+  const handleReceiptOption = (wantsReceipt) => {
+    setCustomerData((prev) => ({
+      ...prev,
+      wantsReceipt,
+    }));
+
+    if (wantsReceipt) {
+      setInputStep("cpf");
+    } else {
+      setInputStep("name");
+    }
+  };
+
+  const handleCpfConfirm = () => {
+    const isComplete = CPFUtils.isComplete(customerData.cpf);
+    const isValid = CPFUtils.validate(customerData.cpf);
+
+    if (isComplete && isValid) {
+      setInputStep("name");
+    }
+  };
+
+  const handleNameConfirm = () => {
+    setInputStep("payment");
+  };
+
+  const handleCardTypeSelect = (type) => {
+    setCardType(type);
+    setPaymentMethod(`card_${type}`);
+  };
+
+  const handleOrderTypeSelect = (type) => {
+    setOrderType(type);
+    setCurrentScreen("main");
   };
 
   const processPayment = () => {
+    const orderData = {
+      items: cart,
+      total: calculateCartTotal(),
+      paymentMethod,
+      cardType,
+      orderType,
+      customerData,
+      timestamp: new Date().toISOString(),
+    };
+
+    let paymentDescription = "";
+    if (paymentMethod === "card_credit") {
+      paymentDescription = "Cartão de Crédito";
+    } else if (paymentMethod === "card_debit") {
+      paymentDescription = "Cartão de Débito";
+    } else {
+      paymentDescription = paymentMethod === "pix" ? "PIX" : "Dinheiro";
+    }
+
+    const orderTypeDescription =
+      orderType === "dine-in" ? "Comer no Local" : "Levar para Viagem";
+
     alert(
-      `Pedido finalizado!\n\nTotal: R$ ${calculateCartTotal().toFixed(
-        2
-      )}\nPagamento: ${paymentMethod}\n\nObrigado pela preferência!`
+      `Pedido finalizado!\n\n` +
+        `Tipo: ${orderTypeDescription}\n` +
+        `Cliente: ${customerData.name || "Não informado"}\n` +
+        `CPF na nota: ${
+          customerData.wantsReceipt
+            ? customerData.cpf || "Não informado"
+            : "Não solicitado"
+        }\n` +
+        `Total: R$ ${calculateCartTotal().toFixed(2)}\n` +
+        `Pagamento: ${paymentDescription}\n\n` +
+        `Obrigado pela preferência!`
     );
+
+    // Reset completo do estado
     setCart([]);
     setCurrentScreen("welcome");
+    setOrderType(null);
     setPaymentMethod(null);
+    setCardType(null);
+    setCustomerData({ name: "", cpf: "", wantsReceipt: false });
+    setInputStep("receipt");
   };
 
   // Tela de boas-vindas
@@ -307,12 +782,12 @@ export default function TotemPage() {
     return (
       <div
         className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6 cursor-pointer"
-        onClick={() => setCurrentScreen("main")}
+        onClick={() => setCurrentScreen("order-type")}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
-            setCurrentScreen("main");
+            setCurrentScreen("order-type");
           }
         }}
         aria-label="Toque para começar"
@@ -336,6 +811,57 @@ export default function TotemPage() {
     );
   }
 
+  // Tela de seleção do tipo de pedido
+  if (currentScreen === "order-type") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+        <div className="text-center max-w-2xl w-full">
+          <div className="text-6xl mb-8">{dashboardData.restaurant.logo}</div>
+
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            {dashboardData.restaurant.name}
+          </h1>
+
+          <p className="text-lg text-gray-600 mb-12">Como você prefere hoje?</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
+            {/* Comer no Local */}
+            <Card
+              className="cursor-pointer hover:scale-105 transition-transform duration-200"
+              onClick={() => handleOrderTypeSelect("dine-in")}
+            >
+              <CardContent className="p-8 text-center">
+                <Home className="h-16 w-16 mx-auto mb-4 text-green-600" />
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Comer no Local
+                </h3>
+                <p className="text-gray-600">
+                  Prefere aproveitar no nosso ambiente
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Levar para Viagem */}
+            <Card
+              className="cursor-pointer hover:scale-105 transition-transform duration-200"
+              onClick={() => handleOrderTypeSelect("takeaway")}
+            >
+              <CardContent className="p-8 text-center">
+                <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Levar para Viagem
+                </h3>
+                <p className="text-gray-600">
+                  Para levar e aproveitar onde preferir
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tela principal com barra lateral
   if (currentScreen === "main") {
     const products = getProductsByCategory(selectedCategory);
@@ -349,6 +875,29 @@ export default function TotemPage() {
             <h2 className="text-2xl font-bold text-gray-800">
               {dashboardData.restaurant.name}
             </h2>
+
+            {/* Indicador do tipo de pedido */}
+            <div className="mt-2 mb-4">
+              <Badge
+                variant="secondary"
+                className={
+                  orderType === "dine-in"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-blue-100 text-blue-800"
+                }
+              >
+                {orderType === "dine-in" ? (
+                  <>
+                    <Home className="h-3 w-3 mr-1" /> Comer no Local
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-3 w-3 mr-1" /> Levar para Viagem
+                  </>
+                )}
+              </Badge>
+            </div>
+
             {isLoading && (
               <div className="text-sm text-yellow-600 mt-1">
                 🔄 Carregando dados...
@@ -389,17 +938,43 @@ export default function TotemPage() {
                 </Badge>
               )}
             </Button>
+
+            {/* Botão para alterar tipo de pedido */}
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left h-12 text-md mt-4"
+              onClick={() => setCurrentScreen("order-type")}
+            >
+              <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
+              Alterar Tipo
+            </Button>
           </div>
         </div>
 
         {/* Conteúdo principal */}
         <div className="flex-1 p-6">
-          <h1 className="text-4xl font-bold text-gray-800 mb-6">
-            {
-              dashboardData.categories.find((c) => c.id === selectedCategory)
-                ?.name
-            }
-          </h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-4xl font-bold text-gray-800">
+              {
+                dashboardData.categories.find((c) => c.id === selectedCategory)
+                  ?.name
+              }
+            </h1>
+
+            {/* Indicador do tipo de pedido no header */}
+            <Badge
+              variant="secondary"
+              className={
+                orderType === "dine-in"
+                  ? "bg-green-100 text-green-800 text-lg"
+                  : "bg-blue-100 text-blue-800 text-lg"
+              }
+            >
+              {orderType === "dine-in"
+                ? "🍽️ Comer no Local"
+                : "🥡 Levar para Viagem"}
+            </Badge>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
@@ -460,7 +1035,25 @@ export default function TotemPage() {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Header do produto */}
+          {/* Header do produto com tipo de pedido */}
+          <div className="flex items-center justify-between mb-4">
+            <Badge
+              variant="secondary"
+              className={
+                orderType === "dine-in"
+                  ? "bg-green-100 text-green-800 text-lg"
+                  : "bg-blue-100 text-blue-800 text-lg"
+              }
+            >
+              {orderType === "dine-in"
+                ? "🍽️ Comer no Local"
+                : "🥡 Levar para Viagem"}
+            </Badge>
+            <Button variant="outline" onClick={() => setCurrentScreen("main")}>
+              Voltar ao Cardápio
+            </Button>
+          </div>
+
           <Card className="mb-6">
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -712,10 +1305,35 @@ export default function TotemPage() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-4xl font-bold text-gray-800">Seu Carrinho</h1>
-            <Button variant="outline" onClick={() => setCurrentScreen("main")}>
-              Continuar Comprando
-            </Button>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800">Seu Carrinho</h1>
+              <Badge
+                variant="secondary"
+                className={
+                  orderType === "dine-in"
+                    ? "bg-green-100 text-green-800 mt-2"
+                    : "bg-blue-100 text-blue-800 mt-2"
+                }
+              >
+                {orderType === "dine-in"
+                  ? "🍽️ Comer no Local"
+                  : "🥡 Levar para Viagem"}
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentScreen("order-type")}
+              >
+                Alterar Tipo
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentScreen("main")}
+              >
+                Continuar Comprando
+              </Button>
+            </div>
           </div>
 
           {cart.length === 0 ? (
@@ -835,8 +1453,8 @@ export default function TotemPage() {
     );
   }
 
-  // Tela de pagamento
-  if (currentScreen === "payment") {
+  // Tela de dados do cliente (MELHORADA)
+  if (currentScreen === "customer-data") {
     const paymentMethods = [
       { id: "credit", name: "Cartão de Crédito/Débito", icon: CreditCard },
       { id: "pix", name: "PIX", icon: Smartphone },
@@ -845,8 +1463,29 @@ export default function TotemPage() {
 
     return (
       <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-800 mb-6">Pagamento</h1>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800">
+                Dados do Cliente
+              </h1>
+              <Badge
+                variant="secondary"
+                className={
+                  orderType === "dine-in"
+                    ? "bg-green-100 text-green-800 mt-2"
+                    : "bg-blue-100 text-blue-800 mt-2"
+                }
+              >
+                {orderType === "dine-in"
+                  ? "🍽️ Comer no Local"
+                  : "🥡 Levar para Viagem"}
+              </Badge>
+            </div>
+            <Button variant="outline" onClick={() => setCurrentScreen("cart")}>
+              Voltar ao Carrinho
+            </Button>
+          </div>
 
           {/* Resumo do pedido */}
           <Card className="mb-6">
@@ -883,64 +1522,289 @@ export default function TotemPage() {
             </CardContent>
           </Card>
 
-          {/* Seleção da forma de pagamento */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Escolha a forma de pagamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {paymentMethods.map((method) => {
-                  const IconComponent = method.icon;
-                  return (
+          {/* Opção de CPF na nota */}
+          {inputStep === "receipt" && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  CPF na Nota Fiscal
+                </CardTitle>
+                <CardDescription>
+                  Deseja incluir seu CPF na nota fiscal?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4">
+                  <Button
+                    className="flex-1 h-16 text-lg"
+                    variant={customerData.wantsReceipt ? "default" : "outline"}
+                    onClick={() => handleReceiptOption(true)}
+                  >
+                    Sim, incluir CPF
+                  </Button>
+                  <Button
+                    className="flex-1 h-16 text-lg"
+                    variant={!customerData.wantsReceipt ? "default" : "outline"}
+                    onClick={() => handleReceiptOption(false)}
+                  >
+                    Não, obrigado
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Inserção de CPF MELHORADA */}
+          {inputStep === "cpf" && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-6 w-6" />
+                  Informe seu CPF
+                </CardTitle>
+                <CardDescription>
+                  Digite seu CPF para inclusão na nota fiscal. Será validado
+                  automaticamente.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CPFDisplay cpf={customerData.cpf} showValidation={true} />
+
+                <NumericKeyboard
+                  onKeyPress={handleCpfKeyPress}
+                  onBackspace={handleCpfBackspace}
+                  onClear={handleCpfClear}
+                  onConfirm={handleCpfConfirm}
+                  disabled={isLoading}
+                  confirmDisabled={
+                    !CPFUtils.isComplete(customerData.cpf) ||
+                    !CPFUtils.validate(customerData.cpf)
+                  }
+                />
+
+                <div className="mt-4 text-center">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setInputStep("name")}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Pular e continuar sem CPF
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Inserção do nome MELHORADA */}
+          {inputStep === "name" && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-6 w-6" />
+                  Seu Nome (Opcional)
+                </CardTitle>
+                <CardDescription>
+                  Digite seu nome para identificação do pedido. Máximo 50
+                  caracteres.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-4">
+                  <div className="text-xl bg-gray-100 p-4 rounded-lg min-h-[60px] border-2">
+                    {customerData.name || (
+                      <span className="text-gray-400 italic">
+                        Digite seu nome...
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    {customerData.name.length}/50 caracteres
+                  </div>
+                </div>
+
+                <VirtualKeyboard
+                  onKeyPress={handleNameKeyPress}
+                  onBackspace={handleNameBackspace}
+                  onSpace={handleNameSpace}
+                  onClear={handleNameClear}
+                  onConfirm={handleNameConfirm}
+                  disabled={isLoading}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Seleção de pagamento */}
+          {inputStep === "payment" && (
+            <>
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Resumo dos Dados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p>
+                      <strong>Nome:</strong>{" "}
+                      {customerData.name?.trim() || "Não informado"}
+                    </p>
+                    <p>
+                      <strong>CPF na nota:</strong>{" "}
+                      {customerData.wantsReceipt && customerData.cpf
+                        ? customerData.cpf + " ✅"
+                        : customerData.wantsReceipt
+                        ? "Não informado"
+                        : "Não solicitado"}
+                    </p>
+                    <p>
+                      <strong>Tipo de pedido:</strong>{" "}
+                      {orderType === "dine-in"
+                        ? "Comer no Local"
+                        : "Levar para Viagem"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Escolha a forma de pagamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Opção Cartão (com sub-opções) */}
                     <div
-                      key={method.id}
                       className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                        paymentMethod === method.id
+                        paymentMethod?.startsWith("card_")
                           ? "border-green-500 bg-green-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
-                      onClick={() => setPaymentMethod(method.id)}
+                      onClick={() => setPaymentMethod("card")}
                     >
                       <div
                         className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${
-                          paymentMethod === method.id
+                          paymentMethod?.startsWith("card_")
                             ? "border-green-500 bg-green-500"
                             : "border-gray-300"
                         }`}
                       >
-                        {paymentMethod === method.id && (
+                        {paymentMethod?.startsWith("card_") && (
                           <Check className="h-4 w-4 text-white" />
                         )}
                       </div>
-                      <IconComponent className="h-8 w-8 mr-4" />
-                      <span className="text-xl font-semibold">
-                        {method.name}
-                      </span>
+                      <CreditCard className="h-8 w-8 mr-4" />
+                      <span className="text-xl font-semibold">Cartão</span>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Botões de ação */}
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setCurrentScreen("cart")}
-            >
-              Voltar ao Carrinho
-            </Button>
-            <Button
-              className="flex-1 bg-green-600 hover:bg-green-700"
-              onClick={processPayment}
-              disabled={!paymentMethod}
-            >
-              Confirmar Pagamento
-            </Button>
-          </div>
+                    {/* Sub-opções do cartão */}
+                    {paymentMethod === "card" && (
+                      <div className="ml-8 space-y-3 border-l-2 border-gray-200 pl-4">
+                        <div
+                          className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                            cardType === "credit"
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                          onClick={() => handleCardTypeSelect("credit")}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${
+                              cardType === "credit"
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {cardType === "credit" && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          <Landmark className="h-5 w-5 mr-3 text-blue-500" />
+                          <span>Cartão de Crédito</span>
+                        </div>
+
+                        <div
+                          className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                            cardType === "debit"
+                              ? "border-green-500 bg-green-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                          onClick={() => handleCardTypeSelect("debit")}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${
+                              cardType === "debit"
+                                ? "border-green-500 bg-green-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {cardType === "debit" && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          <CreditCard className="h-5 w-5 mr-3 text-green-500" />
+                          <span>Cartão de Débito</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Outras opções de pagamento */}
+                    {[
+                      { id: "pix", name: "PIX", icon: Smartphone },
+                      { id: "cash", name: "Dinheiro", icon: DollarSign },
+                    ].map((method) => (
+                      <div
+                        key={method.id}
+                        className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                          paymentMethod === method.id
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => {
+                          setPaymentMethod(method.id);
+                          setCardType(null);
+                        }}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${
+                            paymentMethod === method.id
+                              ? "border-green-500 bg-green-500"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {paymentMethod === method.id && (
+                            <Check className="h-4 w-4 text-white" />
+                          )}
+                        </div>
+                        <method.icon className="h-8 w-8 mr-4" />
+                        <span className="text-xl font-semibold">
+                          {method.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setInputStep("name")}
+                >
+                  Voltar
+                </Button>
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={processPayment}
+                  disabled={
+                    !paymentMethod || (paymentMethod === "card" && !cardType)
+                  }
+                >
+                  Confirmar Pagamento - R$ {calculateCartTotal().toFixed(2)}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
