@@ -1,4 +1,4 @@
-// src/components/dashboard/common/ProductCard.jsx
+// src/components/dashboard/MainDashboard/common/ProductCard.jsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Trash2, Label } from "lucide-react";
+// Remova a linha: import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
 import IngredientsList from "./IngredientsList";
 
 export default function ProductCard({
@@ -21,7 +22,7 @@ export default function ProductCard({
   handleToggleProductAvailability,
   handleDeleteProduct,
   getIngredientsByIds,
-  complementGroups, // Passado como prop
+  complementGroups,
 }) {
   return (
     <Card key={product.id} className="relative">
@@ -89,9 +90,10 @@ export default function ProductCard({
 
           {product.ingredients.length > 0 && (
             <div>
-              <Label className="text-xs font-semibold text-gray-700">
+              {/* Substituído Label por span */}
+              <span className="text-xs font-semibold text-gray-700 block mb-1">
                 Ingredientes:
-              </Label>
+              </span>
               <IngredientsList
                 ingredients={getIngredientsByIds(product.ingredients)}
               />
@@ -100,9 +102,10 @@ export default function ProductCard({
 
           {product.complementGroups.length > 0 && (
             <div>
-              <Label className="text-xs font-semibold text-gray-700">
+              {/* Substituído Label por span */}
+              <span className="text-xs font-semibold text-gray-700 block mb-1">
                 Grupos de Complementos:
-              </Label>
+              </span>
               <div className="flex flex-wrap gap-1 mt-1">
                 {product.complementGroups.map((groupId) => {
                   const group = complementGroups.find((g) => g.id === groupId);
